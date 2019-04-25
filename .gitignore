@@ -1,1 +1,6 @@
 /hodp
+/__pycache__
+/.vscode
+/lib
+hodp-scraping-*.json
+*.pyc

@@ -1,0 +1,8 @@
+cron:
+#- description: "scrape HUPD logs"
+#  url: /extract.py
+#  schedule: every 24 hours
+
+- description: "Scrape HUPD Crime Logs"
+  url: /scrape/crime
+  schedule: every 24 hours
