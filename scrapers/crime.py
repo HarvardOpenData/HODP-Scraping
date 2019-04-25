@@ -5,7 +5,6 @@ from firebase_admin import firestore
 import datetime
 from datetime import timedelta
 import re
-import gc
 
 cred = credentials.ApplicationDefault()
 firebase_admin.initialize_app(cred, {
