@@ -84,7 +84,6 @@ for doc in results:
             scrape(url)
         except:
             print("Error")
-        gc.collect()
         last_date += timedelta(days = 1)
 
 print("Scrape crime Logs")
