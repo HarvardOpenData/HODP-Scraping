@@ -1,6 +1,8 @@
-/hodp
-/__pycache__
-/.vscode
+hodp
+__pycache__
+.vscode
 /lib
 hodp-scraping-*.json
 *.pyc
+/workon.sh
+*.zip

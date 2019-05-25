@@ -1,19 +1,15 @@
 runtime: python37
 
-
 handlers:
   - url: /
     script: auto
   - url: /scrape/crime
     script: auto
+  - url: /scrape/gocrimson
+    script: auto
 #    login: admin
 
 instance_class: F2
-
-
-#env_variables:
-#  BUCKET_NAME: "example-gcs-bucket"
-
 #handlers:
 # Matches requests to /images/... to files in static/images/...
 #- url: /images

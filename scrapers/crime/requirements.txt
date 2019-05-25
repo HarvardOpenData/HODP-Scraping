@@ -1,10 +1,3 @@
-Click==7.0
-Flask==1.0.3
-itsdangerous==1.1.0
-Jinja2==2.10.1
-MarkupSafe==1.1.1
-merge-requirements==0.6
-Werkzeug==0.15.4
 CacheControl==0.12.5
 cachetools==3.1.1
 Camelot==12.6.29
@@ -25,6 +18,8 @@ googleapis-common-protos==1.6.0
 grpcio==1.21.1
 httplib2==0.12.3
 idna==2.8
+Jinja2==2.10.1
+MarkupSafe==1.1.1
 msgpack==0.6.1
 pbr==5.2.0
 protobuf==3.7.1
