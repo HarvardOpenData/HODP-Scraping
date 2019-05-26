@@ -1,5 +1,7 @@
 from os import getcwd
 from sys import executable
+from fnmatch import fnmatch
+
 from crontab import CronTab
 
 dirpath = getcwd()
@@ -12,22 +14,66 @@ cron.env['SHELL'] = '/bin/bash'
 # This assumes that this python binary covers all scraper's dependencies
 python = executable
 
-# Jobs to be run every 24hrs
-cmd_daily = [
-    (f'{python} {dirpath}/scrapers/gocrimson/scrape_gocrimson.py',
-     'Scrape Gocrimson'),
-    (f'{python} {dirpath}/scrapers/crime/scrape_crime.py', 'Scrape crime')
-]
 
-# Create jobs if they do not already exist
-for command, description in cmd_daily:
-    if list(cron.find_command(command)) == []:
-        job = cron.new(command=command, comment=description)
-        if job.is_valid():
-            job.run()
+class InvalidTimeError(Exception):
+    pass
+
+
+def create_job(cmd):
+    def set_time(job):
+        time = cmd['time']
+        def get_x(time): return time.split(' ')[1]
+        if fnmatch(time, 'everyday'):
             job.every().dom()
+        elif fnmatch(time, 'every ? hours'):
+            job.hour.every(get_x(time))
+        elif fnmatch(time, 'every ? days'):
+            job.day.every(get_x(time))
+        elif fnmatch(time, '? ? ? ? ?'):
+            job.setall(time)
+        else:
+            raise InvalidTimeError
+
+    command = cmd['command']
+    comment = cmd['comment']
+
+    if list(cron.find_command(command)) == []:
+        job = cron.new(command=command, comment=comment)
+        if job.is_valid():
+            set_time(job)
         else:
             job.delete()
 
+
+""" 'commands' contains the list of jobs to be run
+    Dict interface:
+        @command: the command to be run
+        @comment: info associated with it
+        @time   : when it is to be executed
+        
+    All implemented time descriptors:
+    'everyday', 'every X hours', 'every Y days'
+    where X is between 0 - 23 and where is Y is any natural number
+
+    You may also input normal cron time expressions like '* * * * *' for more control
+"""
+
+
+commands = [
+    {
+        'command': f'{python} {dirpath}/scrapers/gocrimson/scrape_gocrimson.py',
+        'comment': 'Scrape Gocrimson',
+        'time': 'everyday',
+    },
+    {
+        'command': f'{python} {dirpath}/scrapers/crime/scrape_crime.py',
+        'comment': 'Scrape crime',
+        'time': 'everyday'
+    }
+]
+
+# Create jobs from 'command' list
+for command in commands:
+    create_job(command)
 
 cron.write()
