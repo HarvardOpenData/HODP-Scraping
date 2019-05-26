@@ -4,5 +4,5 @@ __pycache__
 /lib
 hodp-scraping-*.json
 *.pyc
-/workon.sh
-*.zip
+*.tab
+*.log

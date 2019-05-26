@@ -6,18 +6,7 @@ from scrapy.loader import ItemLoader
 from scrapy.utils.log import configure_logging
 from firebase_admin import credentials, initialize_app, firestore
 
-
-class OverallScoresItem(Item):
-    team = Field()
-    season = Field()
-    overall = Field()
-    conference = Field()
-    streak = Field()
-    home = Field()
-    away = Field()
-    neutral = Field()
-
-
+# TODO: modularize code
 URLS = [
     "https://www.gocrimson.com/sports/bsb/archive",
     "https://www.gocrimson.com/sports/mbkb/archive",
@@ -34,6 +23,17 @@ URLS = [
     "https://www.gocrimson.com/sports/sball/archive",
     "https://www.gocrimson.com/sports/wvball/archive"
 ]
+
+
+class OverallScoresItem(Item):
+    team = Field()
+    season = Field()
+    overall = Field()
+    conference = Field()
+    streak = Field()
+    home = Field()
+    away = Field()
+    neutral = Field()
 
 
 class TeamsSpider(Spider):
@@ -57,7 +57,7 @@ class TeamsSpider(Spider):
             '.secondary-nav > h1:nth-child(1) > a:nth-child(1)::text').get()
         scores['season'] = response.url.split('/')[-3]
 
-        # Could be use a loop probably
+        # Could use a loop probably
         scores['overall'] = table.css(
             'tr:nth-child(2) > td:nth-child(2)::text').get()
         scores['conference'] = table.css(
@@ -144,3 +144,6 @@ def scrape():
     deferred = runner.crawl(spider)
     deferred.addBoth(lambda _: reactor.stop())
     reactor.run()
+
+
+scrape()
