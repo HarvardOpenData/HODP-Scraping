@@ -12,7 +12,7 @@ Please refer to `CONTRIBUTING.md` for instructions on how to add your own scrape
 2. Navigate to the project and run
 
 ```bash
-source hopd/bin/activate
+source hodp/bin/activate
 ./resolve_reqs
 ./init_crontab
 crontab scrape.tab
