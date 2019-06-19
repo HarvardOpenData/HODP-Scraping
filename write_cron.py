@@ -69,6 +69,11 @@ commands = [
         'command': f'{python} {dirpath}/scrapers/crime/scrape_crime.py',
         'comment': 'Scrape crime',
         'time': 'everyday'
+    },
+    {
+        'command': f'{dirpath}/pull_and_run.sh',
+        'comment': 'Pull changes from remote and reset crontab',
+        'time': 'every 7 days'
     }
 ]
 
