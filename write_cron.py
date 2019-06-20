@@ -73,7 +73,7 @@ commands = [
     {
         'command': f'{dirpath}/pull_and_run.sh',
         'comment': 'Pull changes from remote and reset crontab',
-        'time': 'every 7 days'
+        'time': '0 12 * * *'  # everyday at 12:00pm
     }
 ]
 
