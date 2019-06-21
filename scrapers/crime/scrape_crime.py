@@ -88,6 +88,7 @@ for doc in results:
             day = "0" + day
         url = "https://www.hupd.harvard.edu/files/hupd/files/" + month + day + year + ".pdf"
         # Scrape each url
+        print(url)
         try:
             scrape(url)
         except:
