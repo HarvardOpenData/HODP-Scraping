@@ -6,6 +6,8 @@ from scrapy.loader import ItemLoader
 from scrapy.utils.log import configure_logging
 from firebase_admin import credentials, initialize_app, firestore
 
+from koala_cron import Monitor
+
 # TODO: modularize code
 URLS = [
     "https://www.gocrimson.com/sports/bsb/archive",
@@ -146,4 +148,8 @@ def scrape():
     reactor.run()
 
 
-scrape()
+if __name__ == "__main__":
+    m = Monitor(
+        "https://hooks.slack.com/services/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")
+    m.attach_job(scrape, job_name="scrape_gocrimson",
+                 notify_on_failure_only=False)()

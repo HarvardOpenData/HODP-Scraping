@@ -5,6 +5,8 @@ from firebase_admin import firestore
 import datetime
 from datetime import timedelta
 import re
+from koala_cron import Monitor
+from urllib.error import HTTPError
 
 cred = credentials.ApplicationDefault()
 firebase_admin.initialize_app(cred, {
@@ -67,35 +69,43 @@ def scrape(url):
 
 
 # Find latest date
-query = crimes_ref.order_by(
-    u'reported', direction=firestore.Query.DESCENDING).limit(1)
-results = query.stream()
+def main():
+    query = crimes_ref.order_by(
+        u'reported', direction=firestore.Query.DESCENDING).limit(1)
+    results = query.stream()
 
-for doc in results:
-    latest_time = (doc.to_dict())["reported"]
-    last_date = datetime.datetime(
-        year=latest_time.year, month=latest_time.month, day=latest_time.day)
-    last_date += timedelta(days=1)
-    cur_date = datetime.datetime.now()
-    print("Hello")
-    while last_date < cur_date:
-        day = str(last_date.day)
-        month = str(last_date.month)
-        year = str(last_date.year - 2000)
-        if(len(month) < 2):
-            month = "0" + month
-        if(len(day) < 2):
-            day = "0" + day
-        url = "https://www.hupd.harvard.edu/files/hupd/files/" + month + day + year + ".pdf"
-        # Scrape each url
-        print(url)
-        try:
-            scrape(url)
-        except:
-            print("Error")
+    for doc in results:
+        latest_time = (doc.to_dict())["reported"]
+        last_date = datetime.datetime(
+            year=latest_time.year, month=latest_time.month, day=latest_time.day)
         last_date += timedelta(days=1)
+        cur_date = datetime.datetime.now()
+        print("Hello")
+        while last_date < cur_date:
+            day = str(last_date.day)
+            month = str(last_date.month)
+            year = str(last_date.year - 2000)
+            if(len(month) < 2):
+                month = "0" + month
+            if(len(day) < 2):
+                day = "0" + day
+            url = "https://www.hupd.harvard.edu/files/hupd/files/" + month + day + year + ".pdf"
+            # Scrape each url
+            print(url)
+            try:
+                scrape(url)
+            except HTTPError:
+                print("Error")
+            last_date += timedelta(days=1)
 
-print("Scrape crime Logs")
+    print("Scrape crime Logs")
+
+
+if __name__ == "__main__":
+    m = Monitor(
+        "https://hooks.slack.com/services/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")
+    m.attach_job(main, job_name="scrape_crime",
+                 notify_on_failure_only=False)()
 
 
 # scrape("https://www.hupd.harvard.edu/files/hupd/files/040219.pdf")
