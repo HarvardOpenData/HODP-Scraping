@@ -7,27 +7,32 @@ from urllib.request import urlopen
 def download_html(url : str) -> str:
     return urlopen(url).read().decode("utf-8")
 
-# get the links to individual faculty finder pages
+# get details found on first search page:
+## first and last name
+## url to more details
+## school
+## title
 # basic strategy:
 ## Loop through each letter of the alphabet
 ## Loop through increments of 100 offset in the url
 ## Get all of the links to faculty pages
-def get_finder_links() -> List[str]:
-    all_links = []
+def get_outline_data() -> List[dict]:
+    all_outlines = []
     for letter in string.ascii_uppercase:
         offset = 0
         while True: 
             url = "http://facultyfinder.harvard.edu/search?name={}&offset={}".format(letter, offset)
-            page_links = get_links_on_finder_page(url)
-            if len(page_links) == 0:
+            page_outlines = get_links_on_finder_page(url)
+            if len(page_outlines) == 0:
                 break
-            all_links += page_links
+            all_outlines += page_outlines
             offset += 100
-    return page_links
+    return all_outlines
 
-def get_links_on_finder_page(url) -> List[str]:
+def get_outlines_on_finder_page(url) -> List[dict]:
     raise NotImplementedError()
 # takes a list of urls on faculty finder and gets basic info about faculty member from that page
+# Not sure we even need this
 # basic strategy:
 ## Go to each link, create dictionary with the corresponding info
 ## Return a list of dictionaries with all the info we can get about each prof here
