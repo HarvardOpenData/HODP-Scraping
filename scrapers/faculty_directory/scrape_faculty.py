@@ -1,4 +1,5 @@
 import beautifulsoup4 as bsoup
+import string
 from typing import List
 from urllib.request import urlopen
 
@@ -12,8 +13,20 @@ def download_html(url : str) -> str:
 ## Loop through increments of 100 offset in the url
 ## Get all of the links to faculty pages
 def get_finder_links() -> List[str]:
-    raise NotImplementedError()
+    all_links = []
+    for letter in string.ascii_uppercase:
+        offset = 0
+        while True: 
+            url = "http://facultyfinder.harvard.edu/search?name={}&offset={}".format(letter, offset)
+            page_links = get_links_on_finder_page(url)
+            if len(page_links) == 0:
+                break
+            all_links += page_links
+            offset += 100
+    return page_links
 
+def get_links_on_finder_page(url) -> List[str]:
+    raise NotImplementedError()
 # takes a list of urls on faculty finder and gets basic info about faculty member from that page
 # basic strategy:
 ## Go to each link, create dictionary with the corresponding info
