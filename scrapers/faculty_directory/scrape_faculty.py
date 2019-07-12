@@ -1,5 +1,10 @@
 import beautifulsoup4 as bsoup
 from typing import List
+from urllib.request import urlopen
+
+# downloads html from url
+def download_html(url : str) -> str:
+    return urlopen(url).read().decode("utf-8")
 
 # get the links to individual faculty finder pages
 # basic strategy:
