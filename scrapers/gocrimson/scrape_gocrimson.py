@@ -150,6 +150,5 @@ def scrape():
 
 if __name__ == "__main__":
     m = Monitor(
-        "https://hooks.slack.com/services/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")
-    m.attach_job(scrape, job_name="scrape_gocrimson",
-                 notify_on_failure_only=False)()
+        "https://hooks.slack.com/services/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")
+    m.attach_job(scrape, job_name="scrape_gocrimson")()

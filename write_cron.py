@@ -58,7 +58,7 @@ def create_job(cmd):
     You may also input normal cron time expressions like '* * * * *' for more control
 """
 
-
+# Note that all times are in UTC. So, 12:00am UTC becomes 8:00pm EST.
 commands = [
     {
         'command': f'{python} {dirpath}/scrapers/gocrimson/scrape_gocrimson.py',
@@ -68,12 +68,12 @@ commands = [
     {
         'command': f'{python} {dirpath}/scrapers/crime/scrape_crime.py',
         'comment': 'Scrape crime',
-        'time': 'everyday'
+        'time': '45 3 * * *'  # everyday at 3:45am UTC (11:45pm EST)
     },
     {
         'command': f'{dirpath}/pull_and_run.sh',
         'comment': 'Pull changes from remote and reset crontab',
-        'time': '0 12 * * *'  # everyday at 12:00pm
+        'time': '0 12 * * *'  # everyday at 12:00pm UTC
     }
 ]
 
