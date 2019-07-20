@@ -8,7 +8,6 @@ setup(
     description='for HODP internal use',
     author='kevalii',
     url='https://github.com/kevalii/koala_cron',
-    download_url='https://github.com/kevalii/koala_cron/archive/0.2.2.tar.gz',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
