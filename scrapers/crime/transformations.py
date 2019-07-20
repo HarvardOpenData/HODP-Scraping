@@ -3,6 +3,7 @@ import typing as T
 from functools import reduce
 
 import pandas as pd
+import numpy as np
 
 LABELS = ("reported", "type", "occurred",
           "address", "status", "description")
@@ -16,13 +17,18 @@ def apply_transformations(dataframe: pd.DataFrame,
         Returns:
             A dataframe with all functions applied.
     """
-    return reduce(lambda df, callback: df.apply(callback, axis=1),
+    def apply_func(df, callback):
+        return df.apply(callback, axis=1)
+
+    return reduce(apply_func,
                   functions,
                   dataframe)
 
 
 def convert_to_datetime(series: pd.Series) -> pd.Series:
-    series["reported"] = dateutil.parser.parse(series["reported"])
+    time_str = series["reported"]
+    if isinstance(time_str, str):
+        series["reported"] = dateutil.parser.parse(time_str)
     return series
 
 
@@ -32,29 +38,58 @@ def remove_new_lines(series: pd.Series) -> pd.Series:
 
 
 def clean_one_liners(series: pd.Series) -> pd.Series:
-    if all(series[label] != "" for label in LABELS):
-        pass
-    else:
-        lines = list(map(lambda str: str.strip(),
-                         series["reported"].split("\n")))
-        if len(lines) != 7:
-            series = pd.Series([])
-        else:
-            reported_1, occurred_1, address, incident_type, status, reported_2, occurred_2 = lines
 
-            series["reported"] = reported_1 + "\n" + reported_2
-            series["occurred"] = occurred_1 + "\n" + occurred_2
-            series["address"] = address
-            series["type"] = incident_type
-            series["status"] = status
-    return series
+    lines = list(map(lambda str: str.strip(),
+                     series["reported"].split("\n")))
+
+    new_series = pd.Series([])
+
+    if len(lines) == 9:
+        reported_1, occurred_1, address_1, incident_type_1, status, reported_2, occurred_2, address_2, incident_type_2 = lines
+
+        new_series["reported"] = reported_1 + "\n" + reported_2
+        new_series["occurred"] = occurred_1 + "\n" + occurred_2
+        new_series["address"] = address_1 + address_2
+        new_series["type"] = incident_type_1 + incident_type_2
+        new_series["status"] = status
+        new_series["description"] = series["description"]
+
+    elif len(lines) == 8:
+        reported_1, occurred_1, address_1, incident_type, status, reported_2, occurred_2, address_2 = lines
+
+        new_series["reported"] = reported_1 + "\n" + reported_2
+        new_series["occurred"] = occurred_1 + "\n" + occurred_2
+        new_series["address"] = address_1 + address_2
+        new_series["type"] = incident_type
+        new_series["status"] = status
+        new_series["description"] = series["description"]
+
+    elif len(lines) == 7:
+        reported_1, occurred_1, address, incident_type, status, reported_2, occurred_2 = lines
+
+        new_series["reported"] = reported_1 + "\n" + reported_2
+        new_series["occurred"] = occurred_1 + "\n" + occurred_2
+        new_series["address"] = address
+        new_series["type"] = incident_type
+        new_series["status"] = status
+        new_series["description"] = series["description"]
+    else:
+        new_series = series
+
+    return new_series
 
 
 def zip_single(iterable: T.Iterable[T.Any]):
     """
         Zips together every two elements in an iterable.
     """
-    first, second, *rest = iterable
+    try:
+        first, second, *rest = iterable
+    except ValueError:
+        first, *rest = iterable
+        placeholders = [" "]
+        second = pd.Series(data=placeholders)
+
     if rest:
         return [(first, second)] + zip_single(rest)
     else:
@@ -63,7 +98,8 @@ def zip_single(iterable: T.Iterable[T.Any]):
 
 def clean_and_organize_data(dataframe: pd.DataFrame) -> pd.DataFrame:
     # Remove column headings
-    dataframe = dataframe.iloc[1:]
+    if dataframe.iloc[0][0].startswith("Date & Time"):
+        dataframe = dataframe.iloc[1:]
 
     mapper = {num: label for num, label in enumerate(LABELS)}
 
@@ -78,9 +114,10 @@ def clean_and_organize_data(dataframe: pd.DataFrame) -> pd.DataFrame:
             solution removes missing/junk values from every report series.
         """
         info, description = info_report_tuple
-        info = info.drop([4, 6])
-        description = description.drop(list(range(1, 7)))
-        combined_series = info.append(description, ignore_index=True)
+        info = pd.Series(info.replace('', np.nan).dropna().values)
+        description = pd.Series(description.replace(
+            '', np.nan).dropna().values, index=[5])
+        combined_series = info.append(description)
 
         # Convert the series into a dataframe for the sake of labelling it
         df = pd.DataFrame(combined_series)
@@ -89,5 +126,5 @@ def clean_and_organize_data(dataframe: pd.DataFrame) -> pd.DataFrame:
 
     report_dfs = map(combine_report_info, info_report_list)
     merged_reports = reduce(lambda merged, df: merged.merge(df, how="outer"),
-                            report_dfs)
+                            report_dfs).fillna('')
     return merged_reports

@@ -6,7 +6,7 @@ from scrapy.loader import ItemLoader
 from scrapy.utils.log import configure_logging
 from firebase_admin import credentials, initialize_app, firestore
 
-from koala_cron import Monitor
+from koala_cron.monitor import build_job
 
 # TODO: modularize code
 URLS = [
@@ -140,6 +140,12 @@ def return_spider_output(output):
 configure_logging({'LOG_FORMAT': '%(levelname)s: %(message)s'})
 
 
+gocrimson_job = partial(build_job,
+                        endpoint="https://hooks.slack.com/services/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",
+                        job_name="scrape gocrimson")
+
+
+@gocrimson_job
 def scrape():
     runner = TeamsCrawlerRunner()
     spider = TeamsSpider()
@@ -149,6 +155,4 @@ def scrape():
 
 
 if __name__ == "__main__":
-    m = Monitor(
-        "https://hooks.slack.com/services/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")
-    m.attach_job(scrape, job_name="scrape_gocrimson")()
+    scrape()

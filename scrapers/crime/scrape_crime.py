@@ -1,5 +1,7 @@
 import datetime
+import logging
 from urllib.error import HTTPError
+from functools import partial
 
 import camelot
 import firebase_admin
@@ -9,6 +11,9 @@ from koala_cron.monitor import build_job
 
 # bad practice but yolo
 from transformations import *
+
+logger = logging.getLogger("crime-logger")
+logger.setLevel("INFO")
 
 cred = credentials.ApplicationDefault()
 firebase_admin.initialize_app(cred, {
@@ -30,25 +35,52 @@ def scrape(url):
                  where description is broken up across two pages: NOT DONE
 
     """
+    logger.info("Received content from {}".format(url))
     tables = camelot.read_pdf(url, pages="1-end")
     row_num = 0
 
-    for table in tables:
-        clean_dataframe = clean_and_organize_data(table.df)
-        transformed_dataframe = apply_transformations(dataframe=clean_dataframe,
-                                                      clean_and_organize_data,
-                                                      clean_one_liners,
-                                                      remove_new_lines,
-                                                      convert_to_datetime)
+    processed_tables = []
+    for i, table in enumerate(tables):
+        # This step handles tables where the first entry is the continuation of a description from the last
+        df = table.df
+        height, width = df.shape
+        if len(df.iloc[1][0].split('.')) > 1:
+            trailing_description = df.iloc[1][0]
+            df = df[2:]
+
+            prev_table = processed_tables[i - 1]
+            last_index = prev_table.index[-1]
+            prev_description = prev_table.loc[last_index,
+                                              "description"]
+            prev_table.loc[last_index,
+                           "description"] = prev_description + " " + trailing_description
+
+            processed_tables[i - 1] = prev_table
+
+        if not df.empty:
+            clean_dataframe = clean_and_organize_data(df)
+
+            transformed_dataframe = apply_transformations(clean_dataframe,
+                                                          clean_one_liners,
+                                                          remove_new_lines,
+                                                          convert_to_datetime)
+
+            processed_tables.append(transformed_dataframe)
 
         for _, report_series in transformed_dataframe.iterrows():
             report = report_series.to_dict()
             db.collection(u'crime-logs').add(report)
+            logger.info("Added {} to collection crime-logs".format(report))
             row_num += 1
 
 
 # Find latest date
-@build_job
+crime_job = partial(build_job,
+                    endpoint="https://hooks.slack.com/services/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",
+                    job_name="scrape crime")
+
+
+@crime_job
 def main():
     query = crimes_ref.order_by(
         u'reported', direction=firestore.Query.DESCENDING).limit(1)
@@ -60,7 +92,7 @@ def main():
             year=latest_time.year, month=latest_time.month, day=latest_time.day)
         last_date += datetime.timedelta(days=1)
         cur_date = datetime.datetime.now()
-        print("Hello")
+
         while last_date < cur_date:
             day = str(last_date.day)
             month = str(last_date.month)
@@ -72,18 +104,15 @@ def main():
             url = "https://www.hupd.harvard.edu/files/hupd/files/" + month + day + year + ".pdf"
             # Scrape each url
             try:
+                logger.info("Attempting to scrape {}".format(url))
                 scrape(url)
             except HTTPError:
-                print("Error")
+                logger.warning(
+                    "Querying {} returned an HTTP error!".format(url))
             last_date += datetime.timedelta(days=1)
 
-    print("Scrape crime Logs")
+    logger.info("Exiting")
 
 
 if __name__ == "__main__":
-    m = Monitor(
-        "https://hooks.slack.com/services/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")
-    m.attach_job(main, job_name="scrape_crime")()
-
-
-# scrape("https://www.hupd.harvard.edu/files/hupd/files/040219.pdf")
+    main()
