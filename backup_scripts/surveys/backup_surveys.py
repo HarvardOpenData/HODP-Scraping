@@ -1,17 +1,21 @@
 import firebase_admin
 import os
+import sys
 from firebase_admin import credentials
 from firebase_admin import firestore
 from datetime import datetime
 import json
 
 def main():
+    output_dir = ""
+    if len(sys.argv) > 1:
+        output_dir = sys.argv[1]
     init_survey_firebase()
     db = get_survey_firestore_client()
-    backup_collection(db, "emails")
-    backup_collection(db, "responses")
+    backup_collection(db, "emails", output_dir)
+    backup_collection(db, "responses", output_dir)
 
-def backup_collection(db, collection_name):
+def backup_collection(db, collection_name, output_dir):
     collection_ref = db.collection(collection_name)
     docs = collection_ref.stream()
     dicts = {}
@@ -19,7 +23,7 @@ def backup_collection(db, collection_name):
         dicts[doc.id] = doc.to_dict()
     output_json = json.dumps(dicts, default=datetime_converter)
     output_filename = get_backup_filename(collection_name)
-    with open(output_filename, "w+") as f:
+    with open(os.path.join(output_dir, output_filename), "w+") as f:
         f.write(output_json)
 
 def init_survey_firebase():
