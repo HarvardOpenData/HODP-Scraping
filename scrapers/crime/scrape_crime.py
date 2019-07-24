@@ -28,23 +28,21 @@ test_arr = []
 
 
 def scrape(url):
-    """
-        known edge cases:
-            case where address is only one line: DONE
-                 where 12am is sometimes written as 0:xx am: DONE
-                 where description is broken up across two pages: NOT DONE
-
-    """
     logger.info("Received content from {}".format(url))
     tables = camelot.read_pdf(url, pages="1-end")
     row_num = 0
 
     processed_tables = []
     for i, table in enumerate(tables):
-        # This step handles tables where the first entry is the continuation of a description from the last
         df = table.df
         height, width = df.shape
-        if len(df.iloc[1][0].split('.')) > 1:
+
+        """
+           Case below handles when first entry is the continuation of a description from the last
+           This is inferred from whether the content in df.iloc[1][0] contains
+           a period, a character that currently only appears in descriptions
+        """
+        if "." in df.iloc[1][0]:
             trailing_description = df.iloc[1][0]
             df = df[2:]
 
@@ -64,7 +62,6 @@ def scrape(url):
                                                           clean_one_liners,
                                                           remove_new_lines,
                                                           convert_to_datetime)
-
             processed_tables.append(transformed_dataframe)
 
         for _, report_series in transformed_dataframe.iterrows():

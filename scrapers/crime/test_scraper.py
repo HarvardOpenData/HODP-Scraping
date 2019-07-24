@@ -9,7 +9,7 @@ JULY_URLS = ['https://www.hupd.harvard.edu/files/hupd/files/070019.pdf', 'https:
              'https://www.hupd.harvard.edu/files/hupd/files/071619.pdf', 'https://www.hupd.harvard.edu/files/hupd/files/071719.pdf', 'https://www.hupd.harvard.edu/files/hupd/files/071819.pdf', 'https://www.hupd.harvard.edu/files/hupd/files/071919.pdf', 'https://www.hupd.harvard.edu/files/hupd/files/072019.pdf', 'https://www.hupd.harvard.edu/files/hupd/files/072119.pdf', 'https://www.hupd.harvard.edu/files/hupd/files/072219.pdf', 'https://www.hupd.harvard.edu/files/hupd/files/072319.pdf', 'https://www.hupd.harvard.edu/files/hupd/files/072419.pdf', 'https://www.hupd.harvard.edu/files/hupd/files/072519.pdf', 'https://www.hupd.harvard.edu/files/hupd/files/072619.pdf', 'https://www.hupd.harvard.edu/files/hupd/files/072719.pdf', 'https://www.hupd.harvard.edu/files/hupd/files/072819.pdf', 'https://www.hupd.harvard.edu/files/hupd/files/072919.pdf', 'https://www.hupd.harvard.edu/files/hupd/files/073019.pdf', 'https://www.hupd.harvard.edu/files/hupd/files/073119.pdf']
 
 if __name__ == "__main__":
-    for url in JULY_URLS:
+    for url in JUNE_URLS:
         try:
             scrape(url)
         except HTTPError:
