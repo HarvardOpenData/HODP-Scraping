@@ -1,10 +1,19 @@
+import datetime
+import logging
+from urllib.error import HTTPError
+from functools import partial
+
 import camelot
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
-import datetime
-from datetime import timedelta
-import re
+from koala_cron.monitor import build_job
+
+# bad practice but yolo
+from transformations import *
+
+logger = logging.getLogger("crime-logger")
+logger.setLevel("INFO")
 
 cred = credentials.ApplicationDefault()
 firebase_admin.initialize_app(cred, {
@@ -19,82 +28,88 @@ test_arr = []
 
 
 def scrape(url):
+    logger.info("Received content from {}".format(url))
     tables = camelot.read_pdf(url, pages="1-end")
     row_num = 0
 
-    for table in tables:
-        for row in table.data[1:]:
-            # Check whether it's info or description
-            if row_num % 2 == 0:
-                clean_row = [x for x in row if len(x) > 0]
-                # Account for the case where description is broken up across two pages
-                if re.search(r'\d+/\d+/\d+', clean_row[0]) and not re.search(r'U|update', clean_row[0]):
-                    # Account for case where all info is read into one element in a list
-                    if len(clean_row) == 1:
-                        data = clean_row[0].splitlines()
-                        # Account for when 12am is sometimes written as 0:xx am
-                        reported = (data[0] + "\n" + data[5]
-                                    ).replace("\n0:", "\n12:")
-                        occurred = data[1] + "\n" + data[6]
-                        # Account for when address is one line only
-                        if len(data) == 7:
-                            address = data[2] + " " + data[7]
-                        else:
-                            address = data[2].replace("\n", "")
-                        d_type = data[3]
-                        status = data[4]
-                        date_time_obj = datetime.datetime.strptime(
-                            reported, '%m/%d/%y\n%I:%M %p')
-                        report = {"reported": date_time_obj, "type": d_type, "occurred": occurred,
-                                  "address": address, "status": status}
-                    # Regular case (each cell read in as separate element)
-                    else:
-                        clean_row[3] = clean_row[3].replace("\n", " ")
-                        # Account for when 12am is sometimes written as 0:xx am
-                        clean_row[0] = clean_row[0].replace("\n0:", "\n12:")
-                        date_time_obj = datetime.datetime.strptime(
-                            clean_row[0], '%m/%d/%y\n%I:%M %p')
-                        report = {"reported": date_time_obj, "type": clean_row[1], "occurred": clean_row[2],
-                                  "address": clean_row[3], "status": clean_row[4]}
-                    row_num += 1
-                else:
-                    pass
-            else:
-                clean_row = [x for x in row if len(x) > 0]
-                report["description"] = clean_row[0]
-                db.collection(u'crime-logs').add(report)
-                row_num += 1
+    processed_tables = []
+    for i, table in enumerate(tables):
+        df = table.df
+        height, width = df.shape
+
+        """
+           Case below handles when first entry is the continuation of a description from the last
+           This is inferred from whether the content in df.iloc[1][0] contains
+           a period, a character that currently only appears in descriptions
+        """
+        if "." in df.iloc[1][0]:
+            trailing_description = df.iloc[1][0]
+            df = df[2:]
+
+            prev_table = processed_tables[i - 1]
+            last_index = prev_table.index[-1]
+            prev_description = prev_table.loc[last_index,
+                                              "description"]
+            prev_table.loc[last_index,
+                           "description"] = prev_description + " " + trailing_description
+
+            processed_tables[i - 1] = prev_table
+
+        if not df.empty:
+            clean_dataframe = clean_and_organize_data(df)
+
+            transformed_dataframe = apply_transformations(clean_dataframe,
+                                                          clean_one_liners,
+                                                          remove_new_lines,
+                                                          convert_to_datetime)
+            processed_tables.append(transformed_dataframe)
+
+        for _, report_series in transformed_dataframe.iterrows():
+            report = report_series.to_dict()
+            db.collection(u'crime-logs').add(report)
+            logger.info("Added {} to collection crime-logs".format(report))
+            row_num += 1
 
 
 # Find latest date
-query = crimes_ref.order_by(
-    u'reported', direction=firestore.Query.DESCENDING).limit(1)
-results = query.stream()
-
-for doc in results:
-    latest_time = (doc.to_dict())["reported"]
-    last_date = datetime.datetime(
-        year=latest_time.year, month=latest_time.month, day=latest_time.day)
-    last_date += timedelta(days=1)
-    cur_date = datetime.datetime.now()
-    print("Hello")
-    while last_date < cur_date:
-        day = str(last_date.day)
-        month = str(last_date.month)
-        year = str(last_date.year - 2000)
-        if(len(month) < 2):
-            month = "0" + month
-        if(len(day) < 2):
-            day = "0" + day
-        url = "https://www.hupd.harvard.edu/files/hupd/files/" + month + day + year + ".pdf"
-        # Scrape each url
-        try:
-            scrape(url)
-        except:
-            print("Error")
-        last_date += timedelta(days=1)
-
-print("Scrape crime Logs")
+crime_job = partial(build_job,
+                    endpoint="https://hooks.slack.com/services/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",
+                    job_name="scrape crime")
 
 
-# scrape("https://www.hupd.harvard.edu/files/hupd/files/040219.pdf")
+@crime_job
+def main():
+    query = crimes_ref.order_by(
+        u'reported', direction=firestore.Query.DESCENDING).limit(1)
+    results = query.stream()
+
+    for doc in results:
+        latest_time = (doc.to_dict())["reported"]
+        last_date = datetime.datetime(
+            year=latest_time.year, month=latest_time.month, day=latest_time.day)
+        last_date += datetime.timedelta(days=1)
+        cur_date = datetime.datetime.now()
+
+        while last_date < cur_date:
+            day = str(last_date.day)
+            month = str(last_date.month)
+            year = str(last_date.year - 2000)
+            if(len(month) < 2):
+                month = "0" + month
+            if(len(day) < 2):
+                day = "0" + day
+            url = "https://www.hupd.harvard.edu/files/hupd/files/" + month + day + year + ".pdf"
+            # Scrape each url
+            try:
+                logger.info("Attempting to scrape {}".format(url))
+                scrape(url)
+            except HTTPError:
+                logger.warning(
+                    "Querying {} returned an HTTP error!".format(url))
+            last_date += datetime.timedelta(days=1)
+
+    logger.info("Exiting")
+
+
+if __name__ == "__main__":
+    main()

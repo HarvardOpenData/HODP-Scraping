@@ -1,10 +1,17 @@
-# -*- coding: utf-8 -*-
+import logging
+from functools import partial
+
 from twisted.internet import reactor
 from scrapy import Spider, log, signals, Item, Field
 from scrapy.crawler import CrawlerRunner
 from scrapy.loader import ItemLoader
 from scrapy.utils.log import configure_logging
 from firebase_admin import credentials, initialize_app, firestore
+
+from koala_cron.monitor import build_job
+
+gocrimson_logger = logging.getLogger("gocrimson_logger")
+gocrimson_logger.setLevel("INFO")
 
 # TODO: modularize code
 URLS = [
@@ -114,13 +121,12 @@ class TeamsCrawlerRunner(CrawlerRunner):
                 validated = False
         if validated:
             self.batch.set(doc_ref, dict(item))
-            log.msg(f'{doc_name} added to batch.',
-                    level=log.DEBUG, spider=spider)
+            gocrimson_logger.info(f'{doc_name} added to batch.')
         return item
 
     def return_items(self, result):
         self.batch.commit()
-        log.msg(
+        gocrimson_logger.info(
             f'Successfully committed to collection {self.COLLECTION_NAME}.')
         return "Teams successfully scraped"
 
@@ -138,6 +144,12 @@ def return_spider_output(output):
 configure_logging({'LOG_FORMAT': '%(levelname)s: %(message)s'})
 
 
+gocrimson_job = partial(build_job,
+                        endpoint="https://hooks.slack.com/services/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",
+                        job_name="scrape gocrimson")
+
+
+@gocrimson_job
 def scrape():
     runner = TeamsCrawlerRunner()
     spider = TeamsSpider()
@@ -146,4 +158,5 @@ def scrape():
     reactor.run()
 
 
-scrape()
+if __name__ == "__main__":
+    scrape()

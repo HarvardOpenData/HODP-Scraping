@@ -5,4 +5,5 @@ for dir in scrapers/*; do
   pip install -r ${dir}/requirements.txt
 done
 
+pip install koala_cron/
 pip freeze > requirements.txt

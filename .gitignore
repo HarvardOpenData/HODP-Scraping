@@ -6,3 +6,5 @@ hodp-scraping-*.json
 *.pyc
 *.tab
 *.log
+*creds.json
+*_backup.json
