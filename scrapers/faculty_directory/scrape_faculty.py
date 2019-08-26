@@ -20,7 +20,7 @@ def main():
     upload_to_firebase(faculty_dict)
 
 
-def get_faculty_links() -> List[dict]:
+def get_faculty_links() -> List[str]:
     faculty_links = []
     for letter in string.ascii_uppercase:
         offset = 0
