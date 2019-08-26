@@ -26,7 +26,7 @@ def get_faculty_links() -> List[dict]:
         offset = 0
         link_tags = True
         while link_tags:
-            url = base_url + "search?name={}&offset={}".format(letter, offset)
+            url = base_url + "/search?name={}&offset={}".format(letter, offset)
             content = requests.get(url).content
             page_soup = soup(content, 'html.parser')
             person_regex = re.compile("^/display/person/.+$")
@@ -43,7 +43,7 @@ def get_faculty_info(link) -> dict:
     page_soup = soup(content, 'html.parser')
     attribute_elements = page_soup.find_all('tr')
     result = {}
-    faculty_name = soup.find('h2').text
+    faculty_name = page_soup.find('h2').text
     result['Name'] = faculty_name
     result['url_source'] = base_url + link
     for attribute_element in attribute_elements:
