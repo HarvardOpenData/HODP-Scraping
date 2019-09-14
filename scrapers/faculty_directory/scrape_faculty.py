@@ -39,7 +39,6 @@ def get_faculty_links() -> List[str]:
     return faculty_links
 
 
-
 def get_faculty_info(link) -> dict:
     content = requests.get(base_url + link).content
     page_soup = soup(content, 'html.parser')
@@ -52,7 +51,6 @@ def get_faculty_info(link) -> dict:
         if len(attribute_element) == 2:
             attribute, value = attribute_element
             result[attribute.text] = value.text
-    print("Scraped: ", faculty_name)
     return result
 
 
