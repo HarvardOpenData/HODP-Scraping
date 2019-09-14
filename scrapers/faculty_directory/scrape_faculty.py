@@ -3,6 +3,7 @@ from typing import List
 import requests
 import string
 import re
+import json
 
 base_url = "http://facultyfinder.harvard.edu"
 
@@ -26,6 +27,7 @@ def get_faculty_links() -> List[str]:
         offset = 0
         link_tags = True
         while link_tags:
+            print("scraped ", letter, ": ", offset)
             url = base_url + "/search?name={}&offset={}".format(letter, offset)
             content = requests.get(url).content
             page_soup = soup(content, 'html.parser')
@@ -47,8 +49,10 @@ def get_faculty_info(link) -> dict:
     result['Name'] = faculty_name
     result['url_source'] = base_url + link
     for attribute_element in attribute_elements:
-        attribute, value = attribute_element
-        result[attribute.text] = value.text
+        if len(attribute_element) == 2:
+            attribute, value = attribute_element
+            result[attribute.text] = value.text
+    print("Scraped: ", faculty_name)
     return result
 
 
@@ -61,6 +65,8 @@ def get_deep_details(people):
 # Take the list of people and upload them to firebase
 ## Shouldn't be too hard since you can just set documents from dicts
 def upload_to_firebase(people):
+    with open("people.json", "w+") as output_file:
+        json.dump(people, output_file)
     raise NotImplementedError()
 
 
