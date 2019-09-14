@@ -4,6 +4,7 @@ import requests
 import string
 import re
 import json
+import mockfirestore
 
 base_url = "http://facultyfinder.harvard.edu"
 
@@ -87,6 +88,8 @@ def upload_to_firebase(faculty_info):
         json.dump(faculty_info, output_file)
     raise NotImplementedError()
 
+def get_scraping_firestore():
+    return mockfirestore.MockFirestore()
 
 if __name__ == "__main__":
     main()
