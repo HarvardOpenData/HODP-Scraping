@@ -18,3 +18,15 @@
 6. When you're done, push your branch to GH and make a pull request. Please include in a comment the command to run your scraper (from the root directory of the project) and how often it should be executed.
 
 While we are not necessarily limited from running scrapers written in languages other than Python, it is generally recommended that you do so for the sake of consistency and easily reviewing code. Please consult the repo maintainers if you strongly desire to write your scraper in another language.
+
+## Ideas for what to scrape
+
+If you're looking for ideas about what to scrape, here are a few datasets that you could look into collecting.
+- Harvard's annual financial reports
+- Course enrollment data
+- Annual concentration counts
+- Annual tuiton rates
+- "Most read" headlines from the Crimson
+- Annual statistics of your choice from the [Common Data Sets](https://oir.harvard.edu/common-data-set)
+
+Many of these datasets can be sourced from several pages, so choose wisely :).
