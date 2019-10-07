@@ -19,6 +19,25 @@
 
 While we are not necessarily limited from running scrapers written in languages other than Python, it is generally recommended that you do so for the sake of consistency and easily reviewing code. Please consult the repo maintainers if you strongly desire to write your scraper in another language.
 
+## Local Testing
+Inside of your python file, make sure to include 
+```
+import sys
+sys.append(".")
+```
+at the top so that you can use other packages.
+
+In order to dev with firestore, there are two options.
+
+If you **have credentials**, make sure that you have your credentials as `scraping_creds.json` in the root folder. Then, in order to test you should run your scraper with the following command:
+```
+LOCAL=TRUE python3 scrapers/your_scraper/your_scraper.py
+```
+If you **do not have credentials**, then to use an in-memory instance of firestore, you should use the following command,
+```
+MOCK_FIRESTORE=TRUE python3 scrapers/your_scraper/your_scraper.py
+```
+
 ## Ideas for what to scrape
 
 If you're looking for ideas about what to scrape, here are a few datasets that you could look into collecting.
