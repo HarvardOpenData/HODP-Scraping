@@ -24,19 +24,25 @@ def scrape_grill_waits():
         s = requests.session()
         result = s.post(ORDER_URL, data=FORM_PAYLOAD, headers=HEAD)
         wait_dict = json.loads(result.content.decode('utf-8'))
-        wait_dict['time'] = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
         wait_dict['got_response'] = True
         return wait_dict
     except:
-        return {"got_response": False, 'time':  datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}
+        return {"got_response": False}
 
 
 def run_scraper():
     store = auth.get_scraping_firestore_client()
     collec = store.collection(COLLECTION_NAME)
     data = scrape_grill_waits()
-    doc = collec.document(data['time'])
-    doc.set(data)
+    meal_id = ""
+    dt = datetime.datetime.now()
+    if dt.hour < 17:
+        meal_id += "Lunch "
+    else:
+        meal_id += "Dinner "
+    meal_id += dt.strftime("%m/%d/%Y")
+    doc = collec.doc(collec.path + '/' + meal_id)
+    doc.update({dt.strftime("%m/%d/%Y, %H:%M:%S"): json.dumps(data)})
 
 
 if __name__ == "__main__":
