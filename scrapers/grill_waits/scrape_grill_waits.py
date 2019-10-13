@@ -34,14 +34,14 @@ def run_scraper():
     store = auth.get_scraping_firestore_client()
     collec = store.collection(COLLECTION_NAME)
     data = scrape_grill_waits()
-    meal_id = ""
     dt = datetime.datetime.now()
+    date = dt.strftime("%m/%d/%Y")
     if dt.hour < 17:
-        meal_id += "Lunch "
+        meal = "Lunch"
     else:
-        meal_id += "Dinner "
-    meal_id += dt.strftime("%m/%d/%Y")
-    doc = collec.doc(meal_id)
+        meal = "Dinner"
+    doc = collec.doc(date + "_" + meal)
+    doc.set({'meal': meal, 'date': date})
     sub_collec = doc.collection(dt.strftime("%m/%d/%Y, %H:%M:%S"))
     data['time'] = dt.strftime("%m/%d/%Y, %H:%M:%S")
     sub_collec.add(data)
