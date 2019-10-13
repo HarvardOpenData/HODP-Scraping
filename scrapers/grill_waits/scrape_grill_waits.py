@@ -41,8 +41,10 @@ def run_scraper():
     else:
         meal_id += "Dinner "
     meal_id += dt.strftime("%m/%d/%Y")
-    doc = collec.doc(collec.path + '/' + meal_id)
-    doc.update({dt.strftime("%m/%d/%Y, %H:%M:%S"): json.dumps(data)})
+    doc = collec.doc(meal_id)
+    sub_collec = doc.collection(dt.strftime("%m/%d/%Y, %H:%M:%S"))
+    data['time'] = dt.strftime("%m/%d/%Y, %H:%M:%S")
+    sub_collec.add(data)
 
 
 if __name__ == "__main__":
