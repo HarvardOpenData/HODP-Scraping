@@ -35,15 +35,15 @@ def run_scraper():
     collec = store.collection(COLLECTION_NAME)
     data = scrape_grill_waits()
     dt = datetime.datetime.now()
-    date = dt.strftime("%m/%d/%Y")
     if dt.hour < 17:
         meal = "Lunch"
     else:
         meal = "Dinner"
-    doc = collec.doc(date + "_" + meal)
-    doc.set({'meal': meal, 'date': date})
-    sub_collec = doc.collection(dt.strftime("%m/%d/%Y, %H:%M:%S"))
-    data['time'] = dt.strftime("%m/%d/%Y, %H:%M:%S")
+    doc = collec.document(dt.strftime("%m/%d/%Y") + "_" + meal)
+    if len(doc.collections()) == 0:
+        doc.set({'meal': meal, 'date': dt})
+    sub_collec = doc.collection(dt.strftime("%H:%M:%S"))
+    data['time'] = dt
     sub_collec.add(data)
 
 
