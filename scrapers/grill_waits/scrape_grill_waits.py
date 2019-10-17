@@ -4,7 +4,6 @@ import datetime
 import sys
 sys.path.append(".")
 from scrapers.utils import auth
-
 auth.init_scraping_firebase()
 
 ORDER_URL = "https://mange.dining.harvard.edu/php/getData.php"
@@ -31,6 +30,10 @@ def scrape_grill_waits():
 
 
 def run_scraper():
+    # uncomment below for local testing
+    #cred = credentials.Certificate("/home/petey/Documents/Harvard/hodp/dhall_scrape/testgrill-76d2a-firebase-adminsdk-i3132-9d8c405083.json")
+    #app = initialize_app(cred, name='testgrill-76d2a')
+    #store = firestore.client(app)
     store = auth.get_scraping_firestore_client()
     collec = store.collection(COLLECTION_NAME)
     data = scrape_grill_waits()
@@ -39,8 +42,8 @@ def run_scraper():
         meal = "Lunch"
     else:
         meal = "Dinner"
-    doc = collec.document(dt.strftime("%m/%d/%Y") + "_" + meal)
-    if len(doc.collections()) == 0:
+    doc = collec.document(dt.strftime("%m_%d_%Y") + "_" + meal)
+    if not doc.get().exists:
         doc.set({'meal': meal, 'date': dt})
     sub_collec = doc.collection(dt.strftime("%H:%M:%S"))
     data['time'] = dt
