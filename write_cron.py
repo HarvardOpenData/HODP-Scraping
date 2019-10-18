@@ -59,6 +59,7 @@ def create_job(cmd):
 """
 
 # Note that all times are in UTC. So, 12:00am UTC becomes 8:00pm EST.
+
 commands = [
     {
         'command': f'{python} {dirpath}/scrapers/gocrimson/scrape_gocrimson.py',
@@ -73,7 +74,12 @@ commands = [
     {
         'command': f'{python} {dirpath}/scrapers/grill_waits/scrape_grill_waits.py',
         'comment': 'Scrape grill wait times',
-        'time': '0 0/5 11-14,17-19 ? * * *'  # every 5 minutes between hours of 11am-3pm, 5pm-7pm
+        'time': """
+        */5 11-13 * * * *
+        0 14 * * * *
+        */5 17-19 * * * *
+        """
+          # every 5 minutes between hours of 11am-3pm, 5pm-7pm
     },
     {
         'command': f'{dirpath}/pull_and_run.sh',
