@@ -28,7 +28,7 @@ def init_scraping_firebase():
     if not is_local():
         cred = credentials.ApplicationDefault()
         firebase_admin.initialize_app(cred, {
-            'projectId': "hodp-surveys",
+            'projectId': "hodp-scraping",
         }, name = "scraping")
     # locally testing, we have some credential file
     else:
