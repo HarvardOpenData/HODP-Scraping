@@ -60,17 +60,17 @@ def create_job(cmd):
 
 commands = [
     {
-        'command': f'{python} {dirpath}/scrapers/gocrimson/scrape_gocrimson.py',
+        'command': f'{python} {dirpath}/scrapers/gocrimson/scrape_gocrimson.py >> cronLog.log 2>&1',
         'comment': 'Scrape Gocrimson',
         'time': 'everyday',
     },
     {
-        'command': f'{python} {dirpath}/scrapers/crime/scrape_crime.py',
+        'command': f'{python} {dirpath}/scrapers/crime/scrape_crime.py >> cronLog.log 2>&1',
         'comment': 'Scrape crime',
         'time': '45 3 * * *'  # everyday at 3:45am UTC (11:45pm EST)
     },
     {
-        'command': f'{python} {dirpath}/scrapers/grill_waits/scrape_grill_waits.py',
+        'command': f'{python} {dirpath}/scrapers/grill_waits/scrape_grill_waits.py >> cronLog.log 2>&1 ',
         'comment': 'Scrape grill wait times',
         'time': "*/5 11-14,17-19 * * *"
           # every 5 minutes between hours of 11am-3pm, 5pm-7pm
