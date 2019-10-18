@@ -45,10 +45,10 @@ def run_scraper():
     doc = collec.document(dt.strftime("%m_%d_%Y") + "_" + meal)
     if not doc.get().exists:
         doc.set({'meal': meal, 'date': dt})
-    sub_collec = doc.collection(dt.strftime("%H:%M:%S"))
+    sub_collec = doc.collection("snapshots")
+    dt_str = dt.strftime("%H:%M:%S")
     data['time'] = dt
-    sub_collec.add(data)
-
+    sub_collec.document(dt_str).set(data)
 
 if __name__ == "__main__":
     run_scraper()

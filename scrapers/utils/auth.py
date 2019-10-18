@@ -30,7 +30,6 @@ def init_scraping_firebase():
         firebase_admin.initialize_app(cred, {
             'projectId': "hodp-surveys",
         }, name = "scraping")
-        print("Hello!")
     # locally testing, we have some credential file
     else:
         cred = credentials.Certificate('scraping_creds.json')
