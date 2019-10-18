@@ -72,7 +72,7 @@ commands = [
     {
         'command': f'{python} {dirpath}/scrapers/grill_waits/scrape_grill_waits.py',
         'comment': 'Scrape grill wait times',
-        'time': "*/5 11-13 * * * *"
+        'time': "*/5 11-14,17-19 * * *"
           # every 5 minutes between hours of 11am-3pm, 5pm-7pm
     },
     {
