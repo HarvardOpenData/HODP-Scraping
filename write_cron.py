@@ -29,7 +29,7 @@ def create_job(cmd):
             job.hour.every(get_x(time))
         elif fnmatch(time, 'every ? days'):
             job.day.every(get_x(time))
-        else
+        else:
             job.setall(time)
 
     command = cmd['command']
