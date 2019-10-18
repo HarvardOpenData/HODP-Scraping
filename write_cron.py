@@ -29,10 +29,8 @@ def create_job(cmd):
             job.hour.every(get_x(time))
         elif fnmatch(time, 'every ? days'):
             job.day.every(get_x(time))
-        elif fnmatch(time, '* * * * *'):
+        else
             job.setall(time)
-        else:
-            raise InvalidTimeError
 
     command = cmd['command']
     comment = cmd['comment']
