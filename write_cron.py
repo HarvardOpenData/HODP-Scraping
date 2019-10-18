@@ -71,6 +71,11 @@ commands = [
         'time': '45 3 * * *'  # everyday at 3:45am UTC (11:45pm EST)
     },
     {
+        'command': f'{python} {dirpath}/scrapers/grill_waits/scrape_grill_waits.py',
+        'comment': 'Scrape grill wait times',
+        'time': '0 0/5 11-14,17-19 ? * * *'  # every 5 minutes between hours of 11am-3pm, 5pm-7pm
+    },
+    {
         'command': f'{dirpath}/pull_and_run.sh',
         'comment': 'Pull changes from remote and reset crontab',
         'time': '0 12 * * *'  # everyday at 12:00pm UTC
