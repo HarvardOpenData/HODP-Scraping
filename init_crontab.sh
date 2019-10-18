@@ -1,5 +1,5 @@
 #!/bin/bash
 touch scrape.tab
-python write_cron.py
+python3 write_cron.py
 
 
