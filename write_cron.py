@@ -20,7 +20,7 @@ class InvalidTimeError(Exception):
 
 def clear_jobs():
     for job in cron:
-        job.remove()
+        cron.remove(job)
 
 def create_job(cmd):
     def set_time(job):
