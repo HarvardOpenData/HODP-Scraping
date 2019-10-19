@@ -85,9 +85,9 @@ commands = [
     }
 ]
 
+clear_jobs()
 # Create jobs from 'command' list
 for command in commands:
-    clear_jobs()
     create_job(command)
 
 cron.write()
