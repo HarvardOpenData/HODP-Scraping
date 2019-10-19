@@ -18,6 +18,9 @@ python = executable
 class InvalidTimeError(Exception):
     pass
 
+def clear_jobs():
+    for job in cron:
+        job.remove()
 
 def create_job(cmd):
     def set_time(job):
@@ -84,6 +87,7 @@ commands = [
 
 # Create jobs from 'command' list
 for command in commands:
+    clear_jobs()
     create_job(command)
 
 cron.write()
