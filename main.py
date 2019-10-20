@@ -2,6 +2,9 @@ from scrapers.crime import scrape_crime
 from scrapers.faculty_directory import scrape_faculty
 from scrapers.gocrimson import scrape_gocrimson
 from scrapers.grill_waits import scrape_grill_waits
+import os
+
+os.environ['TZ'] = 'US/Eastern'
 
 def crime_scraper(data, context):
     scrape_crime.main()
