@@ -1,13 +1,19 @@
 import datetime
 import logging
 from urllib.error import HTTPError
-from functools import partial
+from functools import partial, reduce
 
 import camelot
-import pandas as pd
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
+
+
+import dateutil
+import typing as T
+
+import pandas as pd
+import numpy as np
 # from koala_cron.monitor import build_job
 
 # bad practice but yolo
