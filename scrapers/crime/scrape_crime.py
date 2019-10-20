@@ -7,7 +7,7 @@ import camelot
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
-from koala_cron.monitor import build_job
+# from koala_cron.monitor import build_job
 
 # bad practice but yolo
 from transformations import *
@@ -72,12 +72,12 @@ def scrape(url):
 
 
 # Find latest date
-crime_job = partial(build_job,
-                    endpoint="https://hooks.slack.com/services/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",
-                    job_name="scrape crime")
+#crime_job = partial(build_job,
+#                    endpoint="https://hooks.slack.com/services/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",
+#                    job_name="scrape crime")
 
 
-@crime_job
+# @crime_job
 def main():
     query = crimes_ref.order_by(
         u'reported', direction=firestore.Query.DESCENDING).limit(1)

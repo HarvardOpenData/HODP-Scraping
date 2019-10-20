@@ -2,7 +2,7 @@ from time import sleep
 from functools import partial
 from sys import argv
 
-from koala_cron.monitor import build_job
+# from koala_cron.monitor import build_job
 
 
 class CustomError1(BaseException):
@@ -13,13 +13,13 @@ class CustomError2(BaseException):
     pass
 
 
-decorator = partial(build_job,
-                    job_name="hello",
-                    endpoint="https://hooks.slack.com/services/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",
-                    notify_on_failure_only=False)
+# decorator = partial(build_job,
+#                     job_name="hello",
+#                     endpoint="https://hooks.slack.com/services/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",
+#                     notify_on_failure_only=False)
 
 
-@decorator
+# @decorator
 def passing_job():
     pass
 
