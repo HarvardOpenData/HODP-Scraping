@@ -4,6 +4,7 @@ from urllib.error import HTTPError
 from functools import partial
 
 import camelot
+import pandas as pd
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
