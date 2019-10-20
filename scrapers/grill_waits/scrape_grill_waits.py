@@ -29,7 +29,7 @@ def scrape_grill_waits():
         return {"got_response": False}
 
 
-def run_scraper():
+def main():
     # uncomment below for local testing
     #cred = credentials.Certificate("/home/petey/Documents/Harvard/hodp/dhall_scrape/testgrill-76d2a-firebase-adminsdk-i3132-9d8c405083.json")
     #app = initialize_app(cred, name='testgrill-76d2a')
@@ -51,7 +51,7 @@ def run_scraper():
     sub_collec.document(dt_str).set(data)
 
 if __name__ == "__main__":
-    run_scraper()
+    main()
     #store = auth.get_scraping_firestore_client()
     #collec = store.collection(COLLECTION_NAME)
     #print([d.get().to_dict() for d in collec.list_documents()])

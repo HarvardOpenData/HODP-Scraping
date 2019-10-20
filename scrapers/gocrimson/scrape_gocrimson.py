@@ -150,7 +150,7 @@ gocrimson_job = partial(build_job,
 
 
 @gocrimson_job
-def scrape():
+def main():
     runner = TeamsCrawlerRunner()
     spider = TeamsSpider()
     deferred = runner.crawl(spider)
@@ -159,4 +159,4 @@ def scrape():
 
 
 if __name__ == "__main__":
-    scrape()
+    main()
