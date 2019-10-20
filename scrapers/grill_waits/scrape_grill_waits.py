@@ -2,6 +2,7 @@ import requests
 import json
 import datetime
 import sys
+from pytz import timezone
 sys.path.append(".")
 from scrapers.utils import auth
 auth.init_scraping_firebase()
@@ -37,7 +38,7 @@ def main():
     store = auth.get_scraping_firestore_client()
     collec = store.collection(COLLECTION_NAME)
     data = scrape_grill_waits()
-    dt = datetime.datetime.now(tz=datetime.timezone('US/Eastern'))
+    dt = datetime.datetime.now(tz=timezone('US/Eastern'))
     if dt.hour < 17:
         meal = "Lunch"
     else:
