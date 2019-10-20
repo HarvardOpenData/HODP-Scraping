@@ -37,7 +37,7 @@ def main():
     store = auth.get_scraping_firestore_client()
     collec = store.collection(COLLECTION_NAME)
     data = scrape_grill_waits()
-    dt = datetime.datetime.now()
+    dt = datetime.datetime.now(tz=datetime.timezone('US/Eastern'))
     if dt.hour < 17:
         meal = "Lunch"
     else:
