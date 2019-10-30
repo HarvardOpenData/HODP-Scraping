@@ -9,3 +9,5 @@ hodp-scraping-*.json
 *backup.json
 *creds.json
 *.ipynb
+*.json
+*.csv

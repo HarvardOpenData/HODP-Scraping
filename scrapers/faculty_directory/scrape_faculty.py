@@ -15,10 +15,11 @@ def main():
 
     :return: None
     """
-    faculty_links = get_faculty_links()
+    faculty_members = get_faculty_ids(letters = ["A"], verbose = True)
     id_finder_regex = re.compile('[0-9]+')
     faculty_dict = {}
-    for link in faculty_links:
+    for member in faculty_members:
+        link = "http://facultyfinder.harvard.edu/display/person/{}".format(member["id"])
         faculty_id = int(id_finder_regex.search(link).group())
         faculty_info = get_faculty_info(link)
         faculty_dict[faculty_id] = faculty_info
@@ -28,26 +29,45 @@ def main():
     upload_to_firebase(faculty_dict)
 
 
-def get_faculty_links() -> List[str]:
+def get_faculty_ids(letters = string.ascii_uppercase, verbose = False) -> List[str]:
     """
 
     :return: List of links of each faculty's page in facultyfinder
     """
-    faculty_links = []
-    for letter in string.ascii_uppercase:
+    faculty_ids = []
+    for letter in letters:
         offset = 0
         link_tags = True
+        faculty_letter_ids = []
         while link_tags:
             url = base_url + "/search?name={}&offset={}".format(letter, offset)
-            content = requests.get(url).content
-            page_soup = soup(content, 'html.parser')
-            person_regex = re.compile("^/display/person/.+$")
+            content = requests.get(url).content.decode("utf-8")
+            # page_soup = soup(content, 'html.parser')
+            person_regex = re.compile('<a href="\/display\/person\/(\d+?)\?name={}">(.+?)<\/a><\/td><td>(.*?)<\/td><td>(.*?)<\/td>'.format(letter))
             # if we get an empty list, then we exit the loop
-            link_tags = page_soup.find_all('a', href=person_regex)
-            faculty_links += [tag.get('href') for tag in link_tags]
+            # link_tags = page_soup.find_all('a', href=person_regex)
+            groups = person_regex.findall(content)
+            if len(groups) == 0:
+                link_tags = False
+                break
+            index = 0
+            for group in groups:
+                faculty_letter_ids.append({
+                    "id" : group[0],
+                    "name" :group[1],
+                    "school" : group[2],
+                    "title" : group[3]
+                })
+                index += 1
             offset += 100
+            if verbose:
+                print("scraped {} of {}".format(offset, letter))
+
+        with open("{}_faculty.json".format(letter), "w+") as letter_output:
+            json.dump(faculty_letter_ids, letter_output)
         print("Searched letter {}".format(letter))
-    return faculty_links
+
+    return faculty_ids
 
 
 def get_faculty_info(link) -> dict:
