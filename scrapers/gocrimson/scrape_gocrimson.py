@@ -1,17 +1,22 @@
 import logging
-from functools import partial
 
 from twisted.internet import reactor
-from scrapy import Spider, log, signals, Item, Field
+from scrapy import Spider, signals, Item, Field
 from scrapy.crawler import CrawlerRunner
 from scrapy.loader import ItemLoader
-from scrapy.utils.log import configure_logging
 from firebase_admin import credentials, initialize_app, firestore
 
-# from koala_cron.monitor import build_job
+from sql.engine import init_session
+from sql.models import Score
 
-gocrimson_logger = logging.getLogger("gocrimson_logger")
-gocrimson_logger.setLevel("INFO")
+gocrimson_logger = logging.getLogger(__name__)
+c_handler = logging.StreamHandler()
+c_handler.setLevel(logging.DEBUG)
+c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+c_handler.setFormatter(c_format)
+gocrimson_logger.addHandler(c_handler)
+gocrimson_logger.setLevel(logging.DEBUG)
+
 
 # TODO: modularize code
 URLS = [
@@ -54,7 +59,7 @@ class TeamsSpider(Spider):
             yield response.follow(url, callback=self.parse_overall)
 
     def parse_overall(self, response):
-
+        gocrimson_logger.debug(f'scraping {response.url}')
         table = response.css('div.half:nth-child(1) > table:nth-child(1)')
 
         # Load items
@@ -81,11 +86,6 @@ class TeamsSpider(Spider):
         yield scores
 
 
-oApp = initialize_app(credentials.ApplicationDefault(),
-                      name='hodp-scraping'
-                      )
-
-
 class TeamsCrawlerRunner(CrawlerRunner):
     """
     Crawler object that collects items and returns output after finishing crawl.
@@ -93,11 +93,7 @@ class TeamsCrawlerRunner(CrawlerRunner):
 
     def crawl(self, crawler_or_spidercls, *args, **kwargs):
         self.settings = None
-        self.COLLECTION_NAME = 'sports-scores'
-        self.store = firestore.client(oApp)
-        self.collection_ref = self.store.collection(self.COLLECTION_NAME)
-        self.batch = self.store.batch()
-
+        self.session = init_session("scrape-test", local=True)
         # create crawler (Same as in base CrawlerProcess)
         crawler = self.create_crawler(crawler_or_spidercls)
 
@@ -112,22 +108,28 @@ class TeamsCrawlerRunner(CrawlerRunner):
         return dfd
 
     def item_scraped(self, item, response, spider):
-        doc_name = (
-            f"{item['team']}-{item['season']}").replace('\'', '').replace(' ', '-').lower()
-        doc_ref = self.collection_ref.document(doc_name)
-        validated = True
-        for data in item:
-            if not data:
-                validated = False
-        if validated:
-            self.batch.set(doc_ref, dict(item))
-            gocrimson_logger.info(f'{doc_name} added to batch.')
+        gocrimson_logger.debug("processing item")
+
+        data = Score(**item)
+
+        query = self.session.query(Score).filter()
+
+        # if query.count():
+        qry = data
+        self.session.merge(qry)
+        gocrimson_logger.debug(f'item merged.')
+        # else:
+        #     self.session.add(data)
+        #     gocrimson_logger.debug(f'item added.')
+        self.session.commit()
+
         return item
 
     def return_items(self, result):
-        self.batch.commit()
-        gocrimson_logger.info(
-            f'Successfully committed to collection {self.COLLECTION_NAME}.')
+        self.session.commit()
+        gocrimson_logger.debug(
+            f'Successfully committed to db.')
+        self.session.close()
         return "Teams successfully scraped"
 
 
@@ -141,15 +143,6 @@ def return_spider_output(output):
     return output
 
 
-configure_logging({'LOG_FORMAT': '%(levelname)s: %(message)s'})
-
-
-# gocrimson_job = partial(build_job,
-#                        endpoint="https://hooks.slack.com/services/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",
-#                        job_name="scrape gocrimson")
-
-
-# @gocrimson_job
 def main():
     runner = TeamsCrawlerRunner()
     spider = TeamsSpider()

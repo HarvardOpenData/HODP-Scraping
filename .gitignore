@@ -11,3 +11,4 @@ hodp-scraping-*.json
 *.ipynb
 *.json
 *.csv
+cloud_sql_proxy
