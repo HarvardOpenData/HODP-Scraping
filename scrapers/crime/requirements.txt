@@ -19,7 +19,7 @@ google-cloud-storage==1.16.0
 google-resumable-media==0.3.2
 googleapis-common-protos==1.6.0
 grpcio==1.21.1
-httplib2==0.12.3
+httplib2==0.18.0
 idna==2.8
 jdcal==1.4.1
 Jinja2==2.10.1
